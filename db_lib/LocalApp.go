@@ -7,7 +7,7 @@ import (
 	"github.com/ansible-semaphore/semaphore/pkg/task_logger"
 )
 
-func removeSensitiveEnvs(envs []string) (res []string) {
+func isSensitiveVar(v string) bool {
 	sensitives := []string{
 		"SEMAPHORE_ACCESS_KEY_ENCRYPTION",
 		"SEMAPHORE_ADMIN_PASSWORD",
@@ -20,11 +20,20 @@ func removeSensitiveEnvs(envs []string) (res []string) {
 		"SEMAPHORE_RUNNER_ID",
 	}
 
+	for _, s := range sensitives {
+		if strings.HasPrefix(v, s+"=") {
+			return true
+		}
+	}
+
+	return false
+}
+
+func removeSensitiveEnvs(envs []string) (res []string) {
+
 	for _, e := range envs {
-		for _, s := range sensitives {
-			if !strings.HasPrefix(e, s+"=") {
-				res = append(res, e)
-			}
+		if !isSensitiveVar(e) {
+			res = append(res, e)
 		}
 	}
 
